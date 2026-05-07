@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leave Card System — DENR CENRO Guimbal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0c0e; --surface: #16161a; --surface2: #1f1f25; --surface3: #28282f;
+  --border: #2a2a32; --border2: #353540;
+  --accent: #e8c97e; --accent2: #c0a85e; --accent-dim: rgba(232,201,126,.12);
+  --text: #eeeae4; --text-muted: #7a7a8a; --text-dim: #4a4a5a;
+  --red: #e07070; --green: #7bbf8c; --blue: #7aaae0; --yellow: #e8c97e; --purple: #c47de0;
+  --shadow: 0 8px 40px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{overflow:hidden}
+@media(max-width:768px){body{overflow:auto}}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
+
+/* ─── LOGIN SCREEN ─── */
+#loginScreen{
+  position:fixed;inset:0;z-index:9000;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 80% 60% at 50% 20%, rgba(232,201,126,.07) 0%, transparent 70%), var(--bg);
+}
+.login-card{
+  width:100%;max-width:420px;margin:1rem;
+  background:var(--surface);border:1px solid var(--border2);border-radius:20px;
+  overflow:hidden;box-shadow:var(--shadow), 0 0 0 1px rgba(232,201,126,.06);
+}
+.login-brand{
+  padding:2.5rem 2.5rem 2rem;
+  background:linear-gradient(135deg,rgba(232,201,126,.08),rgba(122,170,224,.04));
+  border-bottom:1px solid var(--border);text-align:center;
+}
+.login-brand .brand-icon{
+  width:56px;height:56px;margin:0 auto 1rem;
+  background:var(--accent-dim);border:1px solid rgba(232,201,126,.25);
+  border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;
+}
+.login-brand h1{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--accent);margin-bottom:.3rem}
+.login-brand p{font-size:.78rem;color:var(--text-muted);letter-spacing:.04em}
+.login-form{padding:2rem 2.5rem 2.5rem}
+.login-tabs{display:flex;gap:.5rem;margin-bottom:1.75rem;background:var(--surface2);border-radius:10px;padding:4px}
+.login-tab{flex:1;background:none;border:none;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;padding:.55rem;border-radius:7px;cursor:pointer;transition:all .2s;letter-spacing:.04em}
+.login-tab.active{background:var(--surface3);color:var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.lf-group{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+.lf-group label{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted)}
+.lf-group input,.lf-group select{
+  background:var(--surface2);border:1px solid var(--border2);border-radius:10px;
+  color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;
+  padding:.65rem 1rem;outline:none;transition:border-color .2s;
+}
+.lf-group input:focus,.lf-group select:focus{border-color:var(--accent)}
+.lf-group select option{background:var(--surface2)}
+.lf-error{background:rgba(224,112,112,.1);border:1px solid rgba(224,112,112,.3);border-radius:8px;
+  padding:.6rem 1rem;font-size:.8rem;color:var(--red);margin-bottom:1rem;display:none}
+.btn-login{
+  width:100%;background:var(--accent);color:#1a1400;font-family:'DM Sans',sans-serif;
+  font-size:.85rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:.75rem;border:none;border-radius:10px;cursor:pointer;transition:background .2s;margin-top:.5rem;
+}
+.btn-login:hover{background:var(--accent2)}
+.login-hint{font-size:.72rem;color:var(--text-dim);text-align:center;margin-top:1.25rem;line-height:1.6}
+.login-hint span{color:var(--text-muted)}
+
+/* ─── APP SHELL ─── */
+#appShell{display:none;height:100vh;overflow:hidden;flex-direction:column}
+#appShell.visible{display:flex}
+
+/* ─── HEADER ─── */
+.app-header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;
+  height:60px;flex-shrink:0;
+}
+.app-header h1{font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--accent)}
+.header-meta{font-size:.72rem;color:var(--text-muted);display:flex;align-items:center;gap:.5rem}
+.header-right{display:flex;align-items:center;gap:.75rem}
+.user-pill{
+  display:flex;align-items:center;gap:.6rem;
+  background:var(--surface2);border:1px solid var(--border);border-radius:50px;
+  padding:.3rem .9rem .3rem .4rem;
+}
+.user-avatar{
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'DM Serif Display',serif;font-size:.75rem;flex-shrink:0;
+}
+.user-info .uname{font-size:.8rem;font-weight:600;line-height:1.2}
+.user-info .urole{font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+.btn-logout{background:none;border:1px solid var(--border);color:var(--text-muted);font-family:'DM Sans',sans-serif;
+  font-size:.72rem;padding:.3rem .75rem;border-radius:6px;cursor:pointer;transition:all .2s}
+.btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+/* ─── MAIN LAYOUT ─── */
+.app-body{display:flex;flex:1;overflow:hidden}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  width:200px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+  overflow-y:auto;padding:1rem .75rem;
+}
+.sidebar-section{font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);padding:.5rem .5rem .25rem;margin-top:.5rem}
+.nav-item{
+  display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:8px;
+  font-size:.82rem;font-weight:500;color:var(--text-muted);cursor:pointer;
+  transition:all .2s;margin-bottom:2px;border:1px solid transparent;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(232,201,126,.18)}
+.nav-icon{font-size:1rem;width:20px;text-align:center}
+.nav-badge{
+  margin-left:auto;background:var(--yellow);color:#1a1400;
+  font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center;
+}
+
+/* ─── CONTENT AREA ─── */
+.content-area{flex:1;overflow-y:auto;padding:1.75rem;background:var(--bg)}
+
+/* ─── TABS / VIEWS ─── */
+.view{display:none}.view.active{display:block}
+
+/* ─── SUMMARY CARDS ─── */
+.summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.75rem}
+.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.4rem;position:relative;overflow:hidden}
+.summary-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent-color,var(--accent))}
+.summary-card .label{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:.4rem}
+.summary-card .value{font-family:'DM Serif Display',serif;font-size:2rem;line-height:1;color:var(--accent-color,var(--accent))}
+.summary-card .sub{font-size:.68rem;color:var(--text-muted);margin-top:.3rem}
+
+/* ─── PANELS ─── */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem}
+.panel-header{
+  padding:.9rem 1.4rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;
+}
+.panel-title{font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--accent)}
+
+/* ─── GRID LAYOUTS ─── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+
+/* ─── FORMS ─── */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;padding:1.25rem}
+.form-group{display:flex;flex-direction:column;gap:.35rem}
+.form-group label{font-size:.67rem;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted)}
+.form-group input,.form-group select,.form-group textarea{
+  background:var(--surface2);border:1px solid var(--border2);border-radius:8px;
+  color:var(--text);font-family:'DM Sans',sans-serif;font-size:.875rem;padding:.58rem .85rem;
+  outline:none;transition:border-color .2s;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group textarea{resize:vertical;min-height:70px}
+.form-group select option{background:var(--surface2)}
+.form-group input[readonly]{opacity:.7;cursor:default}
+.form-section-label{
+  grid-column:1/-1;font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--accent);opacity:.8;padding:.2rem 0 .1rem;border-top:1px solid var(--border);margin-top:.25rem;
+}
+.form-actions{padding:.9rem 1.25rem;border-top:1px solid var(--border);display:flex;gap:.6rem;justify-content:flex-end}
+
+/* ─── BUTTONS ─── */
+.btn{font-family:'DM Sans',sans-serif;font-size:.79rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem 1.2rem;border-radius:8px;border:none;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--accent);color:#1a1400}.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text-muted)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:transparent;border:1px solid var(--red);color:var(--red)}.btn-danger:hover{background:var(--red);color:#fff}
+.btn-success{background:rgba(123,191,140,.15);border:1px solid rgba(123,191,140,.3);color:var(--green)}.btn-success:hover{background:var(--green);color:#0a1f10}
+.btn-sm{padding:.3rem .7rem;font-size:.71rem}
+
+/* ─── TABLE ─── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+thead tr{border-bottom:1px solid var(--border)}
+thead th{padding:.75rem 1rem;text-align:left;font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-weight:600;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.025)}
+tbody td{padding:.7rem 1rem;vertical-align:middle}
+
+/* ─── BADGES ─── */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.67rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.badge-pending{background:rgba(232,201,126,.12);color:var(--yellow);border:1px solid rgba(232,201,126,.28)}
+.badge-approved{background:rgba(123,191,140,.12);color:var(--green);border:1px solid rgba(123,191,140,.28)}
+.badge-rejected{background:rgba(224,112,112,.12);color:var(--red);border:1px solid rgba(224,112,112,.28)}
+.leave-type{display:inline-block;padding:2px 9px;border-radius:6px;font-size:.68rem;font-weight:500}
+.lt-vl{background:rgba(122,170,224,.15);color:var(--blue)}
+.lt-sl{background:rgba(224,112,112,.15);color:var(--red)}
+.lt-ml{background:rgba(232,201,126,.15);color:var(--yellow)}
+.lt-pl{background:rgba(180,130,230,.15);color:var(--purple)}
+.lt-sel{background:rgba(100,210,160,.15);color:#5ecfa0}
+.lt-spl{background:rgba(200,140,240,.15);color:#c07ee0}
+.lt-mfl{background:rgba(240,170,80,.15);color:#e8a040}
+.lt-stl{background:rgba(100,180,240,.15);color:#50aee0}
+.lt-vaw{background:rgba(240,100,140,.15);color:#e8507a}
+.lt-rp{background:rgba(160,200,180,.15);color:#70b898}
+.lt-slv{background:rgba(230,160,200,.15);color:#d870a8}
+
+/* ─── TOOLBAR ─── */
+.toolbar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.search-box{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;padding:0 .7rem;gap:.4rem}
+.search-box svg{opacity:.4;flex-shrink:0}
+.search-box input{background:none;border:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.83rem;padding:.5rem 0;outline:none;width:170px}
+.filter-select{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:.5rem .7rem;outline:none;cursor:pointer}
+.filter-select option{background:var(--surface2)}
+
+/* ─── EMPLOYEE CARDS ─── */
+.emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem;padding:1.25rem}
+.emp-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.15rem;cursor:pointer;transition:border-color .2s,transform .2s}
+.emp-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.emp-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:1rem;flex-shrink:0}
+.emp-name{font-weight:600;font-size:.92rem}
+.emp-meta{font-size:.73rem;color:var(--text-muted);margin-top:.15rem}
+.emp-leaves{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.7rem}
+.emp-leave-pill{font-size:.66rem;padding:2px 7px;border-radius:5px;background:var(--surface);border:1px solid var(--border);color:var(--text-muted)}
+
+/* ─── MODAL ─── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:5000;padding:1rem;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:transform .25s;box-shadow:var(--shadow)}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--accent)}
+.close-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem;padding:4px;transition:color .2s}.close-btn:hover{color:var(--text)}
+
+/* ─── TOAST ─── */
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.5rem;z-index:9999}
+.toast{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:.7rem 1.1rem;font-size:.83rem;display:flex;align-items:center;gap:.55rem;box-shadow:var(--shadow);animation:slideIn .25s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}
+.toast.success{border-left:3px solid var(--green)}.toast.error{border-left:3px solid var(--red)}.toast.info{border-left:3px solid var(--blue)}
+
+/* ─── MISC ─── */
+.empty{text-align:center;padding:3.5rem 2rem;color:var(--text-muted)}
+.empty-icon{font-size:2.5rem;margin-bottom:.75rem;opacity:.3}
+.empty-text{font-size:.87rem}
+.info-box{margin:.75rem 1.25rem;background:rgba(122,170,224,.07);border:1px solid rgba(122,170,224,.18);border-radius:10px;padding:.9rem 1.1rem;font-size:.79rem;color:#a8c8f0;line-height:1.6}
+.info-box strong{color:var(--accent)}
+.balance-row{display:flex;align-items:center;gap:1rem;padding:.7rem 1.25rem;border-bottom:1px solid var(--border)}
+.balance-row:last-child{border-bottom:none}
+.balance-label{flex:1.2;font-size:.83rem}
+.balance-bar-wrap{flex:2;background:var(--surface2);border-radius:4px;height:6px;overflow:hidden}
+.balance-bar{height:100%;border-radius:4px;transition:width .5s}
+.balance-nums{font-size:.8rem;font-weight:600;min-width:130px;text-align:right}
+.page-title{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--accent);margin-bottom:1.25rem}
+.role-badge{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border-radius:10px;font-weight:600}
+.role-admin{background:rgba(196,125,224,.15);color:var(--purple);border:1px solid rgba(196,125,224,.3)}
+.role-employee{background:rgba(122,170,224,.15);color:var(--blue);border:1px solid rgba(122,170,224,.3)}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem}
+.my-leave-hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem}
+
+@media print{
+  #loginScreen,#appShell .app-header,.sidebar,.btn,.form-actions{display:none!important}
+  body{background:#fff;color:#000}
+  .panel{border:1px solid #ccc}
+}
+
+/* ─── MOBILE HAMBURGER ─── */
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:1.4rem;cursor:pointer;padding:.25rem .5rem;line-height:1}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:800}
+.sidebar-overlay.open{display:block}
+
+/* ─── RESPONSIVE BREAKPOINTS ─── */
+@media(max-width:768px){
+  html,body{overflow:auto}
+  #appShell{height:auto;min-height:100vh}
+  .app-header{padding:0 .9rem;height:52px;position:sticky;top:0;z-index:700}
+  .app-header h1{font-size:1rem}
+  .header-meta{display:none}
+  #syncIndicator{display:none}
+  .hamburger{display:block}
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;z-index:900;
+    transform:translateX(-100%);transition:transform .25s;
+    width:230px;padding-top:3.5rem;
+  }
+  .sidebar.open{transform:translateX(0)}
+  .app-body{flex-direction:column}
+  .content-area{padding:1rem .75rem}
+  .user-pill{padding:.25rem .6rem .25rem .3rem}
+  .user-info .urole{display:none}
+  .user-info .uname{font-size:.75rem}
+  .btn-logout{font-size:.68rem;padding:.25rem .5rem}
+  .summary-cards{grid-template-columns:repeat(2,1fr)}
+  .my-leave-hero{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr!important}
+  .form-grid .form-group[style*="grid-column"]{grid-column:1!important}
+  table{font-size:.76rem}
+  thead th{padding:.55rem .6rem;font-size:.6rem}
+  tbody td{padding:.55rem .6rem}
+  .emp-grid{grid-template-columns:1fr}
+  .panel-header{flex-direction:column;align-items:flex-start;gap:.4rem}
+  .toolbar{flex-direction:column;align-items:stretch}
+  .search-box{width:100%}
+  .search-box input{width:100%}
+  .filter-select{width:100%}
+  .modal{max-width:100%;margin:.5rem;border-radius:12px}
+  .login-card{margin:.75rem}
+  .login-form{padding:1.25rem 1.25rem 1.5rem}
+  .login-brand{padding:1.75rem 1.25rem 1.25rem}
+  .balance-row{flex-wrap:wrap;gap:.4rem}
+  .balance-bar-wrap{flex:unset;width:100%}
+  .balance-nums{min-width:unset}
+  .page-header{flex-direction:column;align-items:flex-start}
+}
+
+@media(max-width:480px){
+  .summary-cards{grid-template-columns:1fr}
+  .my-leave-hero{grid-template-columns:1fr}
+  .summary-card .value{font-size:1.6rem}
+  .app-header h1{font-size:.9rem}
+  .table-wrap{font-size:.72rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-icon">🌿</div>
+      <h1>Leave Card System</h1>
+      <p>DENR — CENRO GUIMBAL</p>
+    </div>
+    <div class="login-form">
+      <div class="login-tabs">
+        <button class="login-tab active" onclick="setLoginRole('admin')">Admin</button>
+        <button class="login-tab" onclick="setLoginRole('employee')">Employee</button>
+      </div>
+      <div id="loginError" class="lf-error"></div>
+      <div id="loginAdminFields">
+        <div class="lf-group">
+          <label>Username</label>
+          <input type="text" id="adminUser" placeholder="admin" value="admin">
+        </div>
+        <div class="lf-group">
+          <label>Password</label>
+          <input type="password" id="adminPass" placeholder="••••••••" value="admin123" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+      </div>
+      <div id="loginEmpFields" style="display:none">
+        <div class="lf-group">
+          <label>Select Employee</label>
+          <select id="empLoginSelect"></select>
+        </div>
+        <div class="lf-group">
+          <label>Password</label>
+          <input type="password" id="empPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+      </div>
+      <button class="btn-login" onclick="doLogin()">Sign In</button>
+      <div class="login-hint">
+        Admin: <span>admin / ADMIN1234</span><br>
+        Employees: select your name and enter your assigned password
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP SHELL ═══════════════ -->
+<div id="appShell">
+  <header class="app-header">
+    <div style="display:flex;align-items:center;gap:.6rem">
+      <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+      <h1>Leave Card System</h1>
+    </div>
+    <div class="header-meta" id="dateDisplay"></div>
+    <div class="header-right">
+      <span id="syncIndicator" style="font-size:.7rem;color:var(--text-dim);min-width:110px;text-align:right;transition:color .3s"></span>
+      <div class="user-pill">
+        <div class="user-avatar" id="headerAvatar"></div>
+        <div class="user-info">
+          <div class="uname" id="headerName"></div>
+          <div class="urole" id="headerRole"></div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- SIDEBAR OVERLAY (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebarNav"></nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="content-area" id="mainContent">
+      <!-- ADMIN VIEWS -->
+      <div class="view" id="view-dashboard">
+        <div class="page-title">Dashboard</div>
+        <div class="summary-cards" id="dashCards"></div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Pending Approvals</span>
+              <button class="btn btn-ghost btn-sm" onclick="showView('view-records')">View All</button>
+            </div>
+            <div class="table-wrap">
+              <table><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Action</th></tr></thead>
+              <tbody id="pendingTBody"></tbody></table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Recent Activity</span></div>
+            <div id="recentActivity" style="padding:1rem"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="view" id="view-apply">
+        <div class="page-title">New Leave Application</div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Leave Application Form</span></div>
+          <div class="form-grid">
+            <div class="form-group" id="applyEmpGroup">
+              <label>Employee</label>
+              <select id="applyEmployee" onchange="updateApplyInfo()"></select>
+            </div>
+            <div class="form-group">
+              <label>Leave Type</label>
+              <select id="applyType" onchange="updateApplyInfo()">
+                <option value="VL">Vacation Leave (VL)</option>
+                <option value="SL">Sick Leave (SL)</option>
+                <option value="SEL">Special Emergency Leave (SEL)</option>
+                <option value="ML">Maternity/Paternity Leave (ML)</option>
+                <option value="SPL">Special Privilege Leave (SPL)</option>
+                <option value="MFL">Mandatory/Forced Leave (MFL)</option>
+                <option value="PL">Solo Parent Leave (PL)</option>
+                <option value="STL">Study Leave (STL)</option>
+                <option value="VAW">10-Day VAWC Leave (VAW)</option>
+                <option value="RP">Rehabilitation Privilege (RP)</option>
+                <option value="SLV">Special Leave Benefits — Women (SLV)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date From</label>
+              <input type="date" id="applyFrom" onchange="updateApplyDays()">
+            </div>
+            <div class="form-group">
+              <label>Date To</label>
+              <input type="date" id="applyTo" onchange="updateApplyDays()">
+            </div>
+            <div class="form-group" style="grid-column:1/-1">
+              <label>Reason / Remarks</label>
+              <textarea id="applyReason" placeholder="Brief description of reason for leave..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Working Days (Auto-calculated)</label>
+              <input type="text" id="applyDays" readonly placeholder="Select dates">
+            </div>
+            <div class="form-group">
+              <label>Leave Earned / Allocation</label>
+              <input type="text" id="applyEarned" readonly placeholder="Select employee & type">
+            </div>
+            <div class="form-group">
+              <label>Available Balance</label>
+              <input type="text" id="applyBalance" readonly placeholder="Select employee & type">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" onclick="clearApplyForm()">Clear</button>
+            <button class="btn btn-primary" onclick="submitLeave()">Submit Application</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="view" id="view-records">
+        <div class="page-header">
+          <div class="page-title" style="margin:0">Leave Records</div>
+          <div class="toolbar">
+            <div class="search-box">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" id="searchInput" placeholder="Search employee…" oninput="renderRecords()">
+            </div>
+            <select class="filter-select" id="filterType" onchange="renderRecords()">
+              <option value="">All Types</option>
+              <option value="VL">Vacation Leave</option>
+              <option value="SL">Sick Leave</option>
+              <option value="SEL">Special Emergency Leave</option>
+              <option value="ML">Maternity/Paternity</option>
+              <option value="SPL">Special Privilege Leave</option>
+              <option value="MFL">Mandatory/Forced Leave</option>
+              <option value="PL">Solo Parent Leave</option>
+              <option value="STL">Study Leave</option>
+              <option value="VAW">10-Day VAWC Leave</option>
+              <option value="RP">Rehabilitation Privilege</option>
+              <option value="SLV">Special Leave Benefits (Women)</option>
+            </select>
+            <select class="filter-select" id="filterStatus" onchange="renderRecords()">
+              <option value="">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Employee</th><th>Dept</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th><th id="actionsHeader">Actions</th></tr></thead>
+              <tbody id="recordsTBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="view" id="view-balance">
+        <div class="page-title">Leave Balance Overview</div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">All Balances</span>
+            <select class="filter-select" id="balanceEmpFilter" onchange="renderBalance()">
+              <option value="">All Employees</option>
+            </select>
+          </div>
+          <div id="balanceContent"></div>
+        </div>
+      </div>
+
+      <div class="view" id="view-employees">
+        <div class="page-title">Employee Management</div>
+        <div style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap">
+          <div style="flex:1;min-width:280px">
+            <div class="panel">
+              <div class="panel-header"><span class="panel-title">Add Employee</span></div>
+              <div class="form-grid">
+                <div class="form-group"><label>Full Name</label><input type="text" id="empName" placeholder="Juan Dela Cruz"></div>
+                <div class="form-group"><label>Employee ID</label><input type="text" id="empIdInput" placeholder="EMP-001"></div>
+                <div class="form-group"><label>Department</label><input type="text" id="empDept" placeholder="HR, Finance, IT…"></div>
+                <div class="form-group"><label>Position</label><input type="text" id="empPos" placeholder="Job title"></div>
+                <div class="form-group">
+                  <label>Accrual Rate (days/month)</label>
+                  <select id="empAccrual">
+                    <option value="1.25">Standard — 1.25 days/month</option>
+                    <option value="1.5">Senior — 1.5 days/month</option>
+                    <option value="2.0">Executive — 2.0 days/month</option>
+                  </select>
+                </div>
+                <div class="form-group"><label>Login Password</label><input type="password" id="empPassword" placeholder="Default: pass123" value="pass123"></div>
+                <div class="form-section-label">VL / SL Balance</div>
+                <div class="form-group"><label>VL Balance (days)</label><input type="number" id="empVL" value="0" min="0" step="0.1"></div>
+                <div class="form-group"><label>SL Balance (days)</label><input type="number" id="empSL" value="0" min="0" step="0.1"></div>
+                <div class="form-group"><label>Absences — VL (days)</label><input type="number" id="empAbsVL" value="0" min="0" step="0.1"></div>
+                <div class="form-group"><label>Undertime — VL (days)</label><input type="number" id="empAbsUT_VL" value="0" min="0" step="0.1"></div>
+                <div class="form-section-label">Fixed-Grant Leave Credits</div>
+                <div class="form-group"><label>ML — Maternity/Paternity</label><input type="number" id="empML" value="60" min="0"></div>
+                <div class="form-group"><label>PL — Solo Parent Leave</label><input type="number" id="empPL" value="5" min="0"></div>
+                <div class="form-group"><label>SEL — Special Emergency</label><input type="number" id="empSEL" value="3" min="0"></div>
+                <div class="form-group"><label>SPL — Special Privilege</label><input type="number" id="empSPL" value="3" min="0"></div>
+                <div class="form-group"><label>MFL — Mandatory/Forced</label><input type="number" id="empMFL" value="5" min="0"></div>
+                <div class="form-group"><label>STL — Study Leave</label><input type="number" id="empSTL" value="6" min="0"></div>
+                <div class="form-group"><label>VAW — VAWC Leave</label><input type="number" id="empVAW" value="10" min="0"></div>
+                <div class="form-group"><label>RP — Rehabilitation</label><input type="number" id="empRP" value="0" min="0"></div>
+                <div class="form-group"><label>SLV — Special (Women)</label><input type="number" id="empSLV" value="0" min="0"></div>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary" onclick="addEmployee()">Add Employee</button>
+              </div>
+            </div>
+          </div>
+          <div style="flex:2;min-width:280px">
+            <div class="panel">
+              <div class="panel-header"><span class="panel-title">Employee Directory</span></div>
+              <div class="emp-grid" id="empGrid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPLOYEE-ONLY VIEWS -->
+      <div class="view" id="view-my-dashboard">
+        <div class="page-title" id="myDashTitle">My Leave Overview</div>
+        <div class="my-leave-hero" id="myLeaveHero"></div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">My Leave Applications</span></div>
+            <div class="table-wrap">
+              <table><thead><tr><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Status</th></tr></thead>
+              <tbody id="myLeaveTBody"></tbody></table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">My Leave Balances</span></div>
+            <div id="myBalanceContent"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="view" id="view-my-apply">
+        <div class="page-title">Apply for Leave</div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Leave Application Form</span></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Leave Type</label>
+              <select id="myApplyType" onchange="updateMyApplyInfo()">
+                <option value="VL">Vacation Leave (VL)</option>
+                <option value="SL">Sick Leave (SL)</option>
+                <option value="SEL">Special Emergency Leave (SEL)</option>
+                <option value="ML">Maternity/Paternity Leave (ML)</option>
+                <option value="SPL">Special Privilege Leave (SPL)</option>
+                <option value="MFL">Mandatory/Forced Leave (MFL)</option>
+                <option value="PL">Solo Parent Leave (PL)</option>
+                <option value="STL">Study Leave (STL)</option>
+                <option value="VAW">10-Day VAWC Leave (VAW)</option>
+                <option value="RP">Rehabilitation Privilege (RP)</option>
+                <option value="SLV">Special Leave Benefits — Women (SLV)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date From</label>
+              <input type="date" id="myApplyFrom" onchange="updateMyApplyDays()">
+            </div>
+            <div class="form-group">
+              <label>Date To</label>
+              <input type="date" id="myApplyTo" onchange="updateMyApplyDays()">
+            </div>
+            <div class="form-group" style="grid-column:1/-1">
+              <label>Reason / Remarks</label>
+              <textarea id="myApplyReason" placeholder="Brief description of reason for leave..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Working Days (Auto-calculated)</label>
+              <input type="text" id="myApplyDays" readonly placeholder="Select dates">
+            </div>
+            <div class="form-group">
+              <label>Leave Allocation</label>
+              <input type="text" id="myApplyEarned" readonly>
+            </div>
+            <div class="form-group">
+              <label>Available Balance</label>
+              <input type="text" id="myApplyBalance" readonly>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" onclick="clearMyApplyForm()">Clear</button>
+            <button class="btn btn-primary" onclick="submitMyLeave()">Submit Application</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="view" id="view-my-records">
+        <div class="page-title">My Leave Records</div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th><th>Applied</th></tr></thead>
+              <tbody id="myRecordsTBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBg(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modalTitle">Detail</span>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody" style="padding:1.5rem"></div>
+    <div class="form-actions" id="modalFooter"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  CLOUD SYNC — JSONBin.io
+//  Free, no-account REST storage. All devices
+//  share the same bin so changes sync instantly.
+//
+//  HOW TO SET UP (one-time, takes 2 minutes):
+//  1. Go to https://jsonbin.io and click "Sign Up Free"
+//  2. After login, click "CREATE BIN"
+//  3. Paste this as the initial content and click Create:
+//     {"employees":[],"leaves":[],"users":{}}
+//  4. Copy the BIN ID from the URL (looks like: 6849abc123...)
+//  5. Go to Account → API Keys → copy your Master Key
+//  6. Paste both values below ↓
+// ══════════════════════════════════════════════
+const CLOUD_BIN_ID  = '69fbe61badc21f119a6455e2';   // e.g. '6849abc123def456'
+const CLOUD_API_KEY = '$2a$10$zSKhZWe7ubnnIBLvVKfY5ur9CJPmp2z05TDt/lNNhlup308GjtzRa';   // e.g. '$2a$10$...'
+
+const CLOUD_ENABLED = CLOUD_BIN_ID !== 'PASTE_YOUR_BIN_ID_HERE' && CLOUD_API_KEY !== 'PASTE_YOUR_API_KEY_HERE';
+const CLOUD_URL     = `https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}`;
+
+// ── Sync state ──
+let syncTimer      = null;   // debounce handle
+let cloudVersion   = null;   // last known version tag
+let syncStatus     = 'idle'; // idle | syncing | error | ok
+let pollInterval   = null;
+
+function setSyncStatus(s, msg) {
+  syncStatus = s;
+  const el = document.getElementById('syncIndicator');
+  if (!el) return;
+  const icons = { idle:'○', syncing:'↻', ok:'●', error:'⚠' };
+  const colors = { idle:'var(--text-dim)', syncing:'var(--yellow)', ok:'var(--green)', error:'var(--red)' };
+  el.textContent = `${icons[s]} ${msg||''}`;
+  el.style.color = colors[s];
+}
+
+// ── Push all data to cloud (debounced 800 ms) ──
+function cloudPush() {
+  if (!CLOUD_ENABLED) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(async () => {
+    setSyncStatus('syncing', 'Saving…');
+    try {
+      const body = JSON.stringify({ employees, leaves, users });
+      const res  = await fetch(CLOUD_URL, {
+        method : 'PUT',
+        headers: { 'Content-Type':'application/json', 'X-Master-Key':CLOUD_API_KEY, 'X-Bin-Versioning':'false' },
+        body,
+      });
+      if (!res.ok) throw new Error(res.status);
+      setSyncStatus('ok', 'Saved ✓');
+      setTimeout(()=>setSyncStatus('idle',''), 2500);
+    } catch(e) {
+      setSyncStatus('error', 'Save failed — offline?');
+    }
+  }, 800);
+}
+
+// ── Pull latest data from cloud ──
+async function cloudPull(silent=false) {
+  if (!CLOUD_ENABLED) return false;
+  if (!silent) setSyncStatus('syncing', 'Syncing…');
+  try {
+    const res = await fetch(CLOUD_URL + '/latest', {
+      headers: { 'X-Master-Key': CLOUD_API_KEY }
+    });
+    if (!res.ok) throw new Error(res.status);
+    const json = await res.json();
+    const data = json.record;
+
+    // Merge cloud → memory + localStorage
+    if (Array.isArray(data.employees)) { employees = data.employees; localStorage.setItem('lcs_employees', JSON.stringify(employees)); }
+    if (Array.isArray(data.leaves))    { leaves    = data.leaves;    localStorage.setItem('lcs_leaves',    JSON.stringify(leaves));    }
+    if (data.users && typeof data.users === 'object') { users = data.users; localStorage.setItem('lcs_users', JSON.stringify(users)); }
+
+    setSyncStatus('ok', 'Up to date');
+    setTimeout(()=>setSyncStatus('idle',''), 2000);
+    return true;
+  } catch(e) {
+    setSyncStatus('error', 'Offline — local data');
+    return false;
+  }
+}
+
+// ── Start background polling every 20 s (for multi-device live updates) ──
+function startPolling() {
+  if (!CLOUD_ENABLED || pollInterval) return;
+  pollInterval = setInterval(async () => {
+    const changed = await cloudPull(true);
+    if (changed && currentUser) {
+      renderAll();
+      populateEmpLoginSelect();
+    }
+  }, 20000);
+}
+function stopPolling() { clearInterval(pollInterval); pollInterval = null; }
+
+// ══════════════════════════════════════════════
+//  DATA STORE  (localStorage as fast cache)
+// ══════════════════════════════════════════════
+const SK = { EMP:'lcs_employees', LEAVES:'lcs_leaves', USERS:'lcs_users' };
+const loadLocal = k => { try { return JSON.parse(localStorage.getItem(k))||null; } catch { return null; } };
+
+// save() writes to localStorage immediately AND queues a cloud push
+function save(k, d) {
+  localStorage.setItem(k, JSON.stringify(d));
+  cloudPush();
+}
+
+// Default admin credentials
+const ADMIN_CREDS = { username:'admin', password:'ADMIN1234' };
+
+let employees = loadLocal(SK.EMP) || [];
+let leaves    = loadLocal(SK.LEAVES) || [];
+let users     = loadLocal(SK.USERS) || {}; // {empId: password}
+
+// ══════════════════════════════════════════════
+//  SESSION
+// ══════════════════════════════════════════════
+let currentUser = null; // { role:'admin'|'employee', empId?:'EMP-001', name:'...', color:'...' }
+
+const FIXED_TYPES = [
+  {code:'ML',  label:'Maternity/Paternity Leave',      color:'var(--yellow)', defaultDays:60},
+  {code:'PL',  label:'Solo Parent Leave',              color:'var(--purple)', defaultDays:5},
+  {code:'SEL', label:'Special Emergency Leave',        color:'#5ecfa0',       defaultDays:3},
+  {code:'SPL', label:'Special Privilege Leave',        color:'#c07ee0',       defaultDays:3},
+  {code:'MFL', label:'Mandatory/Forced Leave',         color:'#e8a040',       defaultDays:5},
+  {code:'STL', label:'Study Leave',                    color:'#50aee0',       defaultDays:6},
+  {code:'VAW', label:'10-Day VAWC Leave',              color:'#e8507a',       defaultDays:10},
+  {code:'RP',  label:'Rehabilitation Privilege',       color:'#70b898',       defaultDays:0},
+  {code:'SLV', label:'Special Leave Benefits (Women)', color:'#d870a8',       defaultDays:60},
+];
+const LT_CLASS = {VL:'lt-vl',SL:'lt-sl',ML:'lt-ml',PL:'lt-pl',SEL:'lt-sel',SPL:'lt-spl',MFL:'lt-mfl',STL:'lt-stl',VAW:'lt-vaw',RP:'lt-rp',SLV:'lt-slv'};
+const LT_NAME  = {VL:'Vacation Leave',SL:'Sick Leave',ML:'Maternity/Paternity',PL:'Solo Parent Leave',SEL:'Special Emergency Leave',SPL:'Special Privilege Leave',MFL:'Mandatory/Forced Leave',STL:'Study Leave',VAW:'10-Day VAWC Leave',RP:'Rehabilitation Privilege',SLV:'Special Leave Benefits (Women)'};
+const avatarColors = i => ['#7aaae0','#7bbf8c','#e8c97e','#c47de0','#e07070'][i%5];
+const initials = n => n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+const getEmp   = id => employees.find(e=>e.id===id);
+const fmt      = n  => parseFloat(n||0).toFixed(3);
+const nextId   = () => leaves.length ? Math.max(...leaves.map(l=>l.id))+1 : 1;
+
+function calcDays(from, to) {
+  let count=0, cur=new Date(from), end=new Date(to);
+  while(cur<=end){const d=cur.getDay();if(d!==0&&d!==6)count++;cur.setDate(cur.getDate()+1);}
+  return count;
+}
+function getEarnedBalance(emp) {
+  const totalVL=parseFloat(emp.balVL)||0, totalSL=parseFloat(emp.balSL)||0;
+  const usedVL=leaves.filter(l=>l.empId===emp.id&&l.type==='VL'&&l.status==='Approved').reduce((s,l)=>s+l.days,0);
+  const usedSL=leaves.filter(l=>l.empId===emp.id&&l.type==='SL'&&l.status==='Approved').reduce((s,l)=>s+l.days,0);
+  return {
+    earnedVL:totalVL, earnedSL:totalSL, usedVL, usedSL,
+    remVL:Math.max(0,parseFloat((totalVL-usedVL).toFixed(3))),
+    remSL:Math.max(0,parseFloat((totalSL-usedSL).toFixed(3))),
+    absVL:parseFloat(emp.absVL)||0, absUT_VL:parseFloat(emp.absUT_VL)||0,
+  };
+}
+const leaveTypeClass = t => LT_CLASS[t]||'';
+const leaveTypeName  = t => LT_NAME[t]||t;
+const statusBadge    = s => { const c={Pending:'badge-pending',Approved:'badge-approved',Rejected:'badge-rejected'}; return `<span class="badge ${c[s]||''}">${s}</span>`; };
+
+function showToast(msg, type='info') {
+  const tc=document.getElementById('toastContainer');
+  const t=document.createElement('div'); t.className=`toast ${type}`;
+  t.innerHTML=`<span>${{success:'✓',error:'✕',info:'ℹ'}[type]||'ℹ'}</span><span>${msg}</span>`;
+  tc.appendChild(t); setTimeout(()=>t.remove(),3500);
+}
+
+// ══════════════════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════════════════
+let loginRole = 'admin';
+
+function setLoginRole(role) {
+  loginRole = role;
+  document.querySelectorAll('.login-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&role==='admin')||(i===1&&role==='employee')));
+  document.getElementById('loginAdminFields').style.display = role==='admin'?'':'none';
+  document.getElementById('loginEmpFields').style.display   = role==='employee'?'':'none';
+  document.getElementById('loginError').style.display='none';
+}
+
+function populateEmpLoginSelect() {
+  const sel=document.getElementById('empLoginSelect');
+  sel.innerHTML=employees.map(e=>`<option value="${e.id}">${e.name} (${e.id})</option>`).join('');
+}
+
+function doLogin() {
+  const errEl=document.getElementById('loginError');
+  errEl.style.display='none';
+
+  // Show loading state
+  const btn = document.querySelector('.btn-login');
+  btn.textContent = CLOUD_ENABLED ? 'Connecting…' : 'Signing in…';
+  btn.disabled = true;
+
+  const proceed = () => {
+    btn.textContent = 'Sign In'; btn.disabled = false;
+    if (loginRole==='admin') {
+      const u=document.getElementById('adminUser').value.trim();
+      const p=document.getElementById('adminPass').value;
+      if (u===ADMIN_CREDS.username && p===ADMIN_CREDS.password) {
+        currentUser={role:'admin',name:'Administrator',color:'#c47de0'};
+        launchApp();
+      } else { errEl.textContent='Invalid admin credentials.'; errEl.style.display='block'; }
+    } else {
+      const empId=document.getElementById('empLoginSelect').value;
+      const p=document.getElementById('empPass').value;
+      if (!empId) { errEl.textContent='No employees found. Admin must add employees first.'; errEl.style.display='block'; return; }
+      if (users[empId] && p===users[empId]) {
+        const emp=getEmp(empId);
+        currentUser={role:'employee',empId,name:emp.name,color:avatarColors(employees.indexOf(emp))};
+        launchApp();
+      } else { errEl.textContent='Incorrect password. Please contact your administrator if you forgot your password.'; errEl.style.display='block'; }
+    }
+  };
+
+  if (CLOUD_ENABLED) {
+    const savedEmpId = document.getElementById('empLoginSelect').value;
+    cloudPull(true).then(() => {
+      populateEmpLoginSelect();
+      // Restore the employee selection the user made before cloud pull
+      if (savedEmpId) document.getElementById('empLoginSelect').value = savedEmpId;
+      proceed();
+    });
+  } else {
+    proceed();
+  }
+}
+
+function launchApp() {
+  document.getElementById('loginScreen').style.display='none';
+  const shell=document.getElementById('appShell'); shell.classList.add('visible');
+  // header
+  const av=document.getElementById('headerAvatar');
+  av.style.background=currentUser.color+'33'; av.style.color=currentUser.color;
+  av.textContent=initials(currentUser.name);
+  document.getElementById('headerName').textContent=currentUser.name;
+  document.getElementById('headerRole').textContent=currentUser.role==='admin'?'Administrator':'Employee';
+  if (CLOUD_ENABLED) setSyncStatus('idle','Cloud sync ON');
+  else setSyncStatus('error','Local only — set up JSONBin');
+  buildSidebar();
+  renderAll();
+  showView(currentUser.role==='admin'?'view-dashboard':'view-my-dashboard');
+  startPolling();
+}
+
+function doLogout() {
+  stopPolling();
+  currentUser=null;
+  document.getElementById('appShell').classList.remove('visible');
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('adminPass').value='';
+  document.getElementById('empPass').value='';
+  document.getElementById('loginError').style.display='none';
+  closeSidebar();
+}
+
+function toggleSidebar() {
+  const nav=document.getElementById('sidebarNav');
+  const overlay=document.getElementById('sidebarOverlay');
+  nav.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebarNav')?.classList.remove('open');
+  document.getElementById('sidebarOverlay')?.classList.remove('open');
+}
+
+// ══════════════════════════════════════════════
+//  SIDEBAR
+// ══════════════════════════════════════════════
+function buildSidebar() {
+  const nav=document.getElementById('sidebarNav');
+  const pendingCount=leaves.filter(l=>l.status==='Pending').length;
+  if (currentUser.role==='admin') {
+    nav.innerHTML=`
+      <div class="sidebar-section">Main</div>
+      <div class="nav-item active" onclick="showView('view-dashboard')"><span class="nav-icon">⊞</span>Dashboard${pendingCount?`<span class="nav-badge">${pendingCount}</span>`:''}</div>
+      <div class="nav-item" onclick="showView('view-apply')"><span class="nav-icon">✦</span>Apply Leave</div>
+      <div class="nav-item" onclick="showView('view-records')"><span class="nav-icon">☰</span>Leave Records</div>
+      <div class="nav-item" onclick="showView('view-balance')"><span class="nav-icon">◑</span>Leave Balance</div>
+      <div class="sidebar-section">Admin</div>
+      <div class="nav-item" onclick="showView('view-employees')"><span class="nav-icon">◻</span>Employees</div>`;
+  } else {
+    nav.innerHTML=`
+      <div class="sidebar-section">My Leave</div>
+      <div class="nav-item active" onclick="showView('view-my-dashboard')"><span class="nav-icon">⊞</span>My Overview</div>
+      <div class="nav-item" onclick="showView('view-my-apply')"><span class="nav-icon">✦</span>Apply Leave</div>
+      <div class="nav-item" onclick="showView('view-my-records')"><span class="nav-icon">☰</span>My Records</div>`;
+  }
+}
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const map={'view-dashboard':0,'view-apply':1,'view-records':2,'view-balance':3,'view-employees':4,
+             'view-my-dashboard':0,'view-my-apply':1,'view-my-records':2};
+  const navItems=document.querySelectorAll('.nav-item');
+  if(navItems[map[id]]!==undefined) navItems[map[id]].classList.add('active');
+  // refresh pending badge
+  buildSidebar(); navItems[map[id]]; // re-query after rebuild
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.nav-item')[map[id]]?.classList.add('active');
+  // close sidebar on mobile after navigation
+  if (window.innerWidth <= 768) closeSidebar();
+  // run relevant render
+  if(id==='view-dashboard') renderDashboard();
+  if(id==='view-records') renderRecords();
+  if(id==='view-balance') renderBalance();
+  if(id==='view-employees') renderEmployees();
+  if(id==='view-apply') renderApplyEmployees();
+  if(id==='view-my-dashboard') renderMyDashboard();
+  if(id==='view-my-apply') updateMyApplyInfo();
+  if(id==='view-my-records') renderMyRecords();
+}
+
+// ══════════════════════════════════════════════
+//  RENDER ALL
+// ══════════════════════════════════════════════
+function renderAll() {
+  document.getElementById('dateDisplay').textContent=new Date().toLocaleDateString('en-PH',{weekday:'short',year:'numeric',month:'long',day:'numeric'});
+  if(currentUser?.role==='admin') {
+    renderDashboard(); renderApplyEmployees(); renderRecords(); renderBalance(); renderEmployees();
+  } else if(currentUser?.role==='employee') {
+    renderMyDashboard(); renderMyRecords(); updateMyApplyInfo();
+  }
+}
+
+// ══════════════════════════════════════════════
+//  ADMIN: DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard() {
+  const pending=leaves.filter(l=>l.status==='Pending').length;
+  const approved=leaves.filter(l=>l.status==='Approved').length;
+  document.getElementById('dashCards').innerHTML=`
+    <div class="summary-card" style="--accent-color:var(--blue)"><div class="label">Total Employees</div><div class="value">${employees.length}</div><div class="sub">Registered</div></div>
+    <div class="summary-card" style="--accent-color:var(--accent)"><div class="label">Total Applications</div><div class="value">${leaves.length}</div><div class="sub">All time</div></div>
+    <div class="summary-card" style="--accent-color:var(--yellow)"><div class="label">Pending</div><div class="value">${pending}</div><div class="sub">Awaiting approval</div></div>
+    <div class="summary-card" style="--accent-color:var(--green)"><div class="label">Approved</div><div class="value">${approved}</div><div class="sub">This cycle</div></div>`;
+  const pendingLeaves=leaves.filter(l=>l.status==='Pending');
+  document.getElementById('pendingTBody').innerHTML=pendingLeaves.length
+    ?pendingLeaves.map(l=>{const emp=getEmp(l.empId);return`<tr><td>${emp?emp.name:l.empId}</td><td><span class="leave-type ${leaveTypeClass(l.type)}">${l.type}</span></td><td style="font-size:.76rem">${l.from} – ${l.to}</td><td>${l.days}</td><td style="display:flex;gap:.35rem"><button class="btn btn-sm btn-success" onclick="updateStatus(${l.id},'Approved')">✓ Approve</button><button class="btn btn-sm btn-danger" onclick="updateStatus(${l.id},'Rejected')">✕</button></td></tr>`;}).join('')
+    :`<tr><td colspan="5"><div class="empty"><div class="empty-icon">✓</div><div class="empty-text">No pending approvals</div></div></td></tr>`;
+  const recent=[...leaves].sort((a,b)=>b.id-a.id).slice(0,6);
+  document.getElementById('recentActivity').innerHTML=recent.length
+    ?recent.map(l=>{const emp=getEmp(l.empId);return`<div style="display:flex;gap:.75rem;align-items:center;padding:.55rem 0;border-bottom:1px solid var(--border)"><div style="width:7px;height:7px;border-radius:50%;background:${l.status==='Approved'?'var(--green)':l.status==='Rejected'?'var(--red)':'var(--yellow)'};flex-shrink:0"></div><div><div style="font-size:.8rem;font-weight:500">${emp?emp.name:l.empId}</div><div style="font-size:.7rem;color:var(--text-muted)">${leaveTypeName(l.type)} · ${l.days} day(s) · ${statusBadge(l.status)}</div></div></div>`;}).join('')
+    :'<div class="empty"><div class="empty-text">No records yet</div></div>';
+}
+
+// ══════════════════════════════════════════════
+//  ADMIN: APPLY LEAVE (on behalf of employee)
+// ══════════════════════════════════════════════
+function renderApplyEmployees() {
+  const sel=document.getElementById('applyEmployee');
+  if(!sel)return;
+  sel.innerHTML=employees.map(e=>`<option value="${e.id}">${e.name} (${e.id})</option>`).join('');
+  updateApplyInfo();
+}
+function updateApplyDays() {
+  const from=document.getElementById('applyFrom').value,to=document.getElementById('applyTo').value;
+  document.getElementById('applyDays').value=(from&&to)?calcDays(from,to)+' working day(s)':'';
+}
+function updateApplyInfo() {
+  const empId=document.getElementById('applyEmployee')?.value;
+  const type=document.getElementById('applyType')?.value;
+  const emp=empId?getEmp(empId):null;
+  if(!emp||!type){document.getElementById('applyBalance').value='';document.getElementById('applyEarned').value='';return;}
+  if(type==='VL'||type==='SL'){
+    const eb=getEarnedBalance(emp);
+    const earned=type==='VL'?eb.earnedVL:eb.earnedSL,rem=type==='VL'?eb.remVL:eb.remSL,used=type==='VL'?eb.usedVL:eb.usedSL;
+    document.getElementById('applyEarned').value=`${fmt(earned)} days earned`;
+    document.getElementById('applyBalance').value=`${fmt(rem)} days available (${fmt(used)} used)`;
+  } else {
+    const total=emp.balance[type]||0;
+    const used=leaves.filter(l=>l.empId===empId&&l.type===type&&l.status==='Approved').reduce((s,l)=>s+l.days,0);
+    document.getElementById('applyEarned').value=`Fixed allocation — ${LT_NAME[type]||type}`;
+    document.getElementById('applyBalance').value=`${total-used} days available (${total} total)`;
+  }
+}
+function submitLeave() {
+  const empId=document.getElementById('applyEmployee').value;
+  const type=document.getElementById('applyType').value;
+  const from=document.getElementById('applyFrom').value;
+  const to=document.getElementById('applyTo').value;
+  const reason=document.getElementById('applyReason').value.trim();
+  if(!empId||!from||!to||!reason){showToast('Please fill in all fields.','error');return;}
+  if(new Date(to)<new Date(from)){showToast('End date cannot be before start date.','error');return;}
+  const days=calcDays(from,to);
+  leaves.push({id:nextId(),empId,type,from,to,days,reason,status:'Pending',created:new Date().toISOString().split('T')[0]});
+  save(SK.LEAVES,leaves);
+  showToast('Leave application submitted!','success');
+  clearApplyForm();
+  renderDashboard();
+}
+function clearApplyForm() {
+  ['applyFrom','applyTo','applyReason','applyDays','applyEarned','applyBalance'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+
+// ══════════════════════════════════════════════
+//  ADMIN: LEAVE RECORDS
+// ══════════════════════════════════════════════
+function renderRecords() {
+  const q=(document.getElementById('searchInput')?.value||'').toLowerCase();
+  const ft=document.getElementById('filterType')?.value||'';
+  const fs=document.getElementById('filterStatus')?.value||'';
+  let data=[...leaves].sort((a,b)=>b.id-a.id);
+  if(q) data=data.filter(l=>{const emp=getEmp(l.empId);return(emp?.name||l.empId).toLowerCase().includes(q);});
+  if(ft) data=data.filter(l=>l.type===ft);
+  if(fs) data=data.filter(l=>l.status===fs);
+  // filter by employee if employee role
+  if(currentUser?.role==='employee') data=data.filter(l=>l.empId===currentUser.empId);
+  const isAdmin=currentUser?.role==='admin';
+  document.getElementById('actionsHeader').textContent=isAdmin?'Actions':'';
+  document.getElementById('recordsTBody').innerHTML=data.length
+    ?data.map(l=>{const emp=getEmp(l.empId);return`<tr><td style="color:var(--text-muted);font-size:.75rem">#${l.id}</td><td>${emp?emp.name:l.empId}</td><td style="font-size:.75rem;color:var(--text-muted)">${emp?.dept||'—'}</td><td><span class="leave-type ${leaveTypeClass(l.type)}">${l.type}</span></td><td>${l.from}</td><td>${l.to}</td><td>${l.days}</td><td style="font-size:.76rem;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${l.reason}">${l.reason}</td><td>${statusBadge(l.status)}</td><td>${isAdmin&&l.status==='Pending'?`<div style="display:flex;gap:.3rem"><button class="btn btn-sm btn-success" onclick="updateStatus(${l.id},'Approved')">✓</button><button class="btn btn-sm btn-danger" onclick="updateStatus(${l.id},'Rejected')">✕</button></div>`:isAdmin?`<button class="btn btn-sm btn-danger" onclick="deleteLeave(${l.id})">Del</button>`:'—'}</td></tr>`;}).join('')
+    :`<tr><td colspan="10"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No records found</div></div></td></tr>`;
+}
+function updateStatus(id,status) {
+  const l=leaves.find(x=>x.id===id);
+  if(!l)return;
+  l.status=status;
+  save(SK.LEAVES,leaves);
+  showToast(`Leave ${status.toLowerCase()}!`,status==='Approved'?'success':'info');
+  renderAll(); buildSidebar();
+  document.querySelectorAll('.nav-item')[0]?.classList.add('active');
+}
+function deleteLeave(id) {
+  if(!confirm('Delete this leave record?'))return;
+  leaves=leaves.filter(l=>l.id!==id);
+  save(SK.LEAVES,leaves);
+  showToast('Record deleted.','info');
+  renderRecords();
+}
+
+// ══════════════════════════════════════════════
+//  ADMIN: LEAVE BALANCE
+// ══════════════════════════════════════════════
+function renderBalance() {
+  const sel=document.getElementById('balanceEmpFilter');
+  if(sel){
+    const cur=sel.value;
+    sel.innerHTML=`<option value="">All Employees</option>`+employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+    sel.value=cur;
+  }
+  const filter=sel?.value||'';
+  const list=filter?employees.filter(e=>e.id===filter):employees;
+  let html='';
+  list.forEach(emp=>{
+    const eb=getEarnedBalance(emp);
+    html+=`<div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border)">
+      <div style="font-weight:600;font-size:.9rem;margin-bottom:.75rem;color:var(--accent)">${emp.name} <span style="font-size:.72rem;color:var(--text-muted);font-family:'DM Sans',sans-serif">${emp.id} · ${emp.dept}</span></div>`;
+    // VL
+    const vlPct=emp.balVL>0?Math.min(100,((eb.remVL/emp.balVL)*100)):0;
+    html+=`<div class="balance-row"><div class="balance-label">Vacation Leave (VL)</div><div class="balance-bar-wrap"><div class="balance-bar" style="width:${vlPct}%;background:var(--blue)"></div></div><div class="balance-nums">${fmt(eb.remVL)} / ${fmt(emp.balVL)} days</div></div>`;
+    // SL
+    const slPct=emp.balSL>0?Math.min(100,((eb.remSL/emp.balSL)*100)):0;
+    html+=`<div class="balance-row"><div class="balance-label">Sick Leave (SL)</div><div class="balance-bar-wrap"><div class="balance-bar" style="width:${slPct}%;background:var(--red)"></div></div><div class="balance-nums">${fmt(eb.remSL)} / ${fmt(emp.balSL)} days</div></div>`;
+    // Fixed types
+    FIXED_TYPES.forEach(t=>{
+      const total=emp.balance[t.code]||0,used=leaves.filter(l=>l.empId===emp.id&&l.type===t.code&&l.status==='Approved').reduce((s,l)=>s+l.days,0),rem=Math.max(0,total-used);
+      const pct=total>0?Math.min(100,(rem/total)*100):0;
+      html+=`<div class="balance-row"><div class="balance-label">${t.label} (${t.code})</div><div class="balance-bar-wrap"><div class="balance-bar" style="width:${pct}%;background:${t.color}"></div></div><div class="balance-nums">${rem} / ${total} days</div></div>`;
+    });
+    html+='</div>';
+  });
+  document.getElementById('balanceContent').innerHTML=html||'<div class="empty"><div class="empty-text">No employees found</div></div>';
+}
+
+// ══════════════════════════════════════════════
+//  ADMIN: EMPLOYEES
+// ══════════════════════════════════════════════
+function renderEmployees() {
+  document.getElementById('empGrid').innerHTML=employees.length
+    ?employees.map((emp,i)=>{
+        const eb=getEarnedBalance(emp);
+        const ac=avatarColors(i);
+        return`<div class="emp-card" onclick="showEmpDetail('${emp.id}')">
+          <div style="display:flex;gap:.75rem;align-items:center">
+            <div class="emp-avatar" style="background:${ac}22;color:${ac}">${initials(emp.name)}</div>
+            <div><div class="emp-name">${emp.name}</div><div class="emp-meta">${emp.id} · ${emp.position}</div><div class="emp-meta">${emp.dept}</div></div>
+          </div>
+          <div class="emp-leaves">
+            <span class="emp-leave-pill">VL: ${fmt(eb.remVL)}</span>
+            <span class="emp-leave-pill">SL: ${fmt(eb.remSL)}</span>
+          </div>
+        </div>`;}).join('')
+    :'<div class="empty" style="grid-column:1/-1"><div class="empty-icon">👥</div><div class="empty-text">No employees yet</div></div>';
+}
+
+function addEmployee() {
+  const name=document.getElementById('empName').value.trim();
+  const id=document.getElementById('empIdInput').value.trim();
+  const dept=document.getElementById('empDept').value.trim();
+  const pos=document.getElementById('empPos').value.trim();
+  const pw=document.getElementById('empPassword').value||'pass123';
+  if(!name||!id){showToast('Name and Employee ID are required.','error');return;}
+  if(getEmp(id)){showToast('Employee ID already exists.','error');return;}
+  employees.push({
+    id,name,dept,position:pos,
+    accrualRate:parseFloat(document.getElementById('empAccrual').value)||1.25,
+    balVL:parseFloat(document.getElementById('empVL').value)||0,
+    balSL:parseFloat(document.getElementById('empSL').value)||0,
+    absVL:parseFloat(document.getElementById('empAbsVL').value)||0,
+    absUT_VL:parseFloat(document.getElementById('empAbsUT_VL').value)||0,
+    balance:{
+      ML:parseFloat(document.getElementById('empML').value)||60,
+      PL:parseFloat(document.getElementById('empPL').value)||5,
+      SEL:parseFloat(document.getElementById('empSEL').value)||3,
+      SPL:parseFloat(document.getElementById('empSPL').value)||3,
+      MFL:parseFloat(document.getElementById('empMFL').value)||5,
+      STL:parseFloat(document.getElementById('empSTL').value)||6,
+      VAW:parseFloat(document.getElementById('empVAW').value)||10,
+      RP:parseFloat(document.getElementById('empRP').value)||0,
+      SLV:parseFloat(document.getElementById('empSLV').value)||0,
+    }
+  });
+  users[id]=pw;
+  save(SK.EMP,employees); save(SK.USERS,users);
+  showToast(`${name} added successfully!`,'success');
+  ['empName','empIdInput','empDept','empPos'].forEach(x=>document.getElementById(x).value='');
+  renderEmployees(); renderApplyEmployees(); populateEmpLoginSelect();
+}
+
+function showEmpDetail(empId) {
+  const emp=getEmp(empId); if(!emp)return;
+  const i=employees.indexOf(emp), ac=avatarColors(i), eb=getEarnedBalance(emp);
+  const fixedRows=FIXED_TYPES.map(t=>{
+    const total=emp.balance[t.code]||0,used=leaves.filter(l=>l.empId===empId&&l.type===t.code&&l.status==='Approved').reduce((s,l)=>s+l.days,0);
+    return`<tr><td>${t.label}</td><td>${total}</td><td>${used}</td><td>${Math.max(0,total-used)}</td></tr>`;
+  }).join('');
+  document.getElementById('modalTitle').textContent=emp.name;
+  document.getElementById('modalBody').innerHTML=`
+    <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1.25rem">
+      <div class="emp-avatar" style="width:52px;height:52px;background:${ac}22;color:${ac};font-size:1.25rem">${initials(emp.name)}</div>
+      <div><div style="font-size:1rem;font-weight:600">${emp.name}</div><div style="font-size:.8rem;color:var(--text-muted)">${emp.id} · ${emp.position} · ${emp.dept}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem"><div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:.3rem">VL Balance</div><div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--blue)">${fmt(eb.remVL)}</div><div style="font-size:.7rem;color:var(--text-muted)">of ${fmt(emp.balVL)} days</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem"><div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:.3rem">SL Balance</div><div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--red)">${fmt(eb.remSL)}</div><div style="font-size:.7rem;color:var(--text-muted)">of ${fmt(emp.balSL)} days</div></div>
+    </div>
+    <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:.5rem">Fixed-Grant Leave Balances</div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <table style="font-size:.8rem"><thead><tr style="border-bottom:1px solid var(--border)"><th style="padding:.5rem .75rem;text-align:left;color:var(--text-muted)">Type</th><th style="padding:.5rem .75rem;text-align:left;color:var(--text-muted)">Total</th><th style="padding:.5rem .75rem;text-align:left;color:var(--text-muted)">Used</th><th style="padding:.5rem .75rem;text-align:left;color:var(--text-muted)">Remaining</th></tr></thead>
+      <tbody>${fixedRows}</tbody></table>
+    </div>
+    <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal();editLeaveBalance('${empId}')">✏ Edit Balance</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal();editEmpPassword('${empId}')">🔑 Change Password</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${empId}')">Remove Employee</button>
+    </div>`;
+  document.getElementById('modalFooter').innerHTML=`<button class="btn btn-primary" onclick="closeModal()">Close</button>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function editLeaveBalance(empId) {
+  const emp=getEmp(empId); if(!emp)return;
+  const fixedInputs=FIXED_TYPES.map(t=>`<div class="form-group"><label>${t.code} — ${t.label}</label><input type="number" id="eb_${t.code}" value="${emp.balance[t.code]!=null?emp.balance[t.code]:t.defaultDays}" min="0" step="0.1" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:.5rem .75rem;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none"></div>`).join('');
+  document.getElementById('modalTitle').textContent=`Edit Balance — ${emp.name}`;
+  document.getElementById('modalBody').innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:1rem">
+    <div style="grid-column:1/-1;font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);padding-bottom:.2rem;border-bottom:1px solid var(--border)">VL / SL Balance</div>
+    <div class="form-group"><label>VL Balance (days)</label><input type="number" id="eb_balVL" value="${emp.balVL||0}" min="0" step="0.1" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:.5rem .75rem;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none"></div>
+    <div class="form-group"><label>SL Balance (days)</label><input type="number" id="eb_balSL" value="${emp.balSL||0}" min="0" step="0.1" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:.5rem .75rem;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none"></div>
+    <div class="form-group"><label>Absences — VL (days)</label><input type="number" id="eb_absVL" value="${emp.absVL||0}" min="0" step="0.1" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:.5rem .75rem;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none"></div>
+    <div class="form-group"><label>Undertime — VL (days)</label><input type="number" id="eb_absUT_VL" value="${emp.absUT_VL||0}" min="0" step="0.1" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:.5rem .75rem;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none"></div>
+    <div style="grid-column:1/-1;font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);padding-bottom:.2rem;border-bottom:1px solid var(--border);margin-top:.25rem">Fixed-Grant Leaves</div>
+    ${fixedInputs}
+  </div>`;
+  document.getElementById('modalFooter').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveLeaveBalance('${empId}')">Save Changes</button>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function saveLeaveBalance(empId) {
+  const emp=getEmp(empId); if(!emp)return;
+  emp.balVL=parseFloat(document.getElementById('eb_balVL').value)||0;
+  emp.balSL=parseFloat(document.getElementById('eb_balSL').value)||0;
+  emp.absVL=parseFloat(document.getElementById('eb_absVL').value)||0;
+  emp.absUT_VL=parseFloat(document.getElementById('eb_absUT_VL').value)||0;
+  FIXED_TYPES.forEach(t=>{const v=parseFloat(document.getElementById('eb_'+t.code).value);emp.balance[t.code]=isNaN(v)?t.defaultDays:v;});
+  save(SK.EMP,employees);
+  showToast(`Balance updated for ${emp.name}!`,'success');
+  closeModal(); renderAll();
+}
+
+function editEmpPassword(empId) {
+  const emp=getEmp(empId); if(!emp)return;
+  document.getElementById('modalTitle').textContent=`Change Password — ${emp.name}`;
+  document.getElementById('modalBody').innerHTML=`<div style="padding:.5rem 0">
+    <div class="form-group"><label>New Password</label><input type="password" id="newPwInput" placeholder="Enter new password" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:.6rem .9rem;font-size:.9rem;font-family:'DM Sans',sans-serif;outline:none;width:100%"></div>
+    <div style="font-size:.75rem;color:var(--text-muted);margin-top:.5rem">Employee will use this password to log in.</div>
+  </div>`;
+  document.getElementById('modalFooter').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveEmpPassword('${empId}')">Save Password</button>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function saveEmpPassword(empId) {
+  const pw=document.getElementById('newPwInput').value;
+  if(!pw){showToast('Password cannot be empty.','error');return;}
+  users[empId]=pw; save(SK.USERS,users);
+  showToast('Password updated!','success'); closeModal();
+}
+
+function deleteEmployee(empId) {
+  if(!confirm('Remove this employee and all their leave records?'))return;
+  employees=employees.filter(e=>e.id!==empId);
+  leaves=leaves.filter(l=>l.empId!==empId);
+  delete users[empId];
+  save(SK.EMP,employees); save(SK.LEAVES,leaves); save(SK.USERS,users);
+  showToast('Employee removed.','info'); closeModal(); renderAll();
+}
+
+// ══════════════════════════════════════════════
+//  EMPLOYEE: MY DASHBOARD
+// ══════════════════════════════════════════════
+function renderMyDashboard() {
+  if(!currentUser||currentUser.role!=='employee')return;
+  const emp=getEmp(currentUser.empId); if(!emp)return;
+  document.getElementById('myDashTitle').textContent=`Welcome, ${emp.name.split(' ')[0]} 👋`;
+  const eb=getEarnedBalance(emp);
+  const myLeaves=leaves.filter(l=>l.empId===emp.id);
+  const pending=myLeaves.filter(l=>l.status==='Pending').length;
+  document.getElementById('myLeaveHero').innerHTML=`
+    <div class="summary-card" style="--accent-color:var(--blue)"><div class="label">VL Available</div><div class="value">${fmt(eb.remVL)}</div><div class="sub">of ${fmt(emp.balVL)} days</div></div>
+    <div class="summary-card" style="--accent-color:var(--red)"><div class="label">SL Available</div><div class="value">${fmt(eb.remSL)}</div><div class="sub">of ${fmt(emp.balSL)} days</div></div>
+    <div class="summary-card" style="--accent-color:var(--yellow)"><div class="label">Pending</div><div class="value">${pending}</div><div class="sub">Awaiting approval</div></div>
+    <div class="summary-card" style="--accent-color:var(--green)"><div class="label">Total Applied</div><div class="value">${myLeaves.length}</div><div class="sub">All time</div></div>`;
+  document.getElementById('myLeaveTBody').innerHTML=myLeaves.length
+    ?[...myLeaves].sort((a,b)=>b.id-a.id).slice(0,8).map(l=>`<tr><td><span class="leave-type ${leaveTypeClass(l.type)}">${l.type}</span></td><td style="font-size:.78rem">${l.from}</td><td style="font-size:.78rem">${l.to}</td><td>${l.days}</td><td>${statusBadge(l.status)}</td></tr>`).join('')
+    :`<tr><td colspan="5"><div class="empty"><div class="empty-text">No applications yet</div></div></td></tr>`;
+  // My balances
+  const slPct=emp.balSL>0?Math.min(100,(eb.remSL/emp.balSL)*100):0;
+  const vlPct=emp.balVL>0?Math.min(100,(eb.remVL/emp.balVL)*100):0;
+  let balHtml=`<div class="balance-row"><div class="balance-label">Vacation Leave (VL)</div><div class="balance-bar-wrap"><div class="balance-bar" style="width:${vlPct}%;background:var(--blue)"></div></div><div class="balance-nums">${fmt(eb.remVL)} / ${fmt(emp.balVL)}</div></div>`;
+  balHtml+=`<div class="balance-row"><div class="balance-label">Sick Leave (SL)</div><div class="balance-bar-wrap"><div class="balance-bar" style="width:${slPct}%;background:var(--red)"></div></div><div class="balance-nums">${fmt(eb.remSL)} / ${fmt(emp.balSL)}</div></div>`;
+  FIXED_TYPES.forEach(t=>{
+    const total=emp.balance[t.code]||0,used=leaves.filter(l=>l.empId===emp.id&&l.type===t.code&&l.status==='Approved').reduce((s,l)=>s+l.days,0),rem=Math.max(0,total-used);
+    const pct=total>0?Math.min(100,(rem/total)*100):0;
+    balHtml+=`<div class="balance-row"><div class="balance-label">${t.code} — ${t.label.split(' ').slice(0,2).join(' ')}</div><div class="balance-bar-wrap"><div class="balance-bar" style="width:${pct}%;background:${t.color}"></div></div><div class="balance-nums">${rem} / ${total}</div></div>`;
+  });
+  document.getElementById('myBalanceContent').innerHTML=balHtml;
+}
+
+// ══════════════════════════════════════════════
+//  EMPLOYEE: APPLY LEAVE
+// ══════════════════════════════════════════════
+function updateMyApplyDays() {
+  const from=document.getElementById('myApplyFrom').value,to=document.getElementById('myApplyTo').value;
+  document.getElementById('myApplyDays').value=(from&&to)?calcDays(from,to)+' working day(s)':'';
+}
+function updateMyApplyInfo() {
+  if(!currentUser||currentUser.role!=='employee')return;
+  const emp=getEmp(currentUser.empId); if(!emp)return;
+  const type=document.getElementById('myApplyType')?.value;
+  if(!type)return;
+  if(type==='VL'||type==='SL'){
+    const eb=getEarnedBalance(emp);
+    const earned=type==='VL'?eb.earnedVL:eb.earnedSL,rem=type==='VL'?eb.remVL:eb.remSL,used=type==='VL'?eb.usedVL:eb.usedSL;
+    document.getElementById('myApplyEarned').value=`${fmt(earned)} days earned`;
+    document.getElementById('myApplyBalance').value=`${fmt(rem)} days available (${fmt(used)} used)`;
+  } else {
+    const total=emp.balance[type]||0,used=leaves.filter(l=>l.empId===emp.id&&l.type===type&&l.status==='Approved').reduce((s,l)=>s+l.days,0);
+    document.getElementById('myApplyEarned').value=`Fixed allocation — ${LT_NAME[type]||type}`;
+    document.getElementById('myApplyBalance').value=`${total-used} days available (${total} total)`;
+  }
+}
+function submitMyLeave() {
+  if(!currentUser||currentUser.role!=='employee')return;
+  const empId=currentUser.empId;
+  const type=document.getElementById('myApplyType').value;
+  const from=document.getElementById('myApplyFrom').value;
+  const to=document.getElementById('myApplyTo').value;
+  const reason=document.getElementById('myApplyReason').value.trim();
+  if(!from||!to||!reason){showToast('Please fill in all fields.','error');return;}
+  if(new Date(to)<new Date(from)){showToast('End date cannot be before start date.','error');return;}
+  const days=calcDays(from,to);
+  leaves.push({id:nextId(),empId,type,from,to,days,reason,status:'Pending',created:new Date().toISOString().split('T')[0]});
+  save(SK.LEAVES,leaves);
+  showToast('Application submitted! Awaiting admin approval.','success');
+  clearMyApplyForm();
+  renderMyDashboard();
+}
+function clearMyApplyForm() {
+  ['myApplyFrom','myApplyTo','myApplyReason','myApplyDays'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  updateMyApplyInfo();
+}
+
+// ══════════════════════════════════════════════
+//  EMPLOYEE: MY RECORDS
+// ══════════════════════════════════════════════
+function renderMyRecords() {
+  if(!currentUser||currentUser.role!=='employee')return;
+  const myLeaves=[...leaves].filter(l=>l.empId===currentUser.empId).sort((a,b)=>b.id-a.id);
+  document.getElementById('myRecordsTBody').innerHTML=myLeaves.length
+    ?myLeaves.map(l=>`<tr><td style="color:var(--text-muted);font-size:.74rem">#${l.id}</td><td><span class="leave-type ${leaveTypeClass(l.type)}">${l.type}</span></td><td>${l.from}</td><td>${l.to}</td><td>${l.days}</td><td style="font-size:.76rem;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.reason}</td><td>${statusBadge(l.status)}</td><td style="font-size:.74rem;color:var(--text-muted)">${l.created}</td></tr>`).join('')
+    :`<tr><td colspan="8"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No leave records yet</div></div></td></tr>`;
+}
+
+// ══════════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════════
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+function closeModalOnBg(e){if(e.target===document.getElementById('modalOverlay'))closeModal()}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+document.getElementById('dateDisplay').textContent=new Date().toLocaleDateString('en-PH',{weekday:'short',year:'numeric',month:'long',day:'numeric'});
+
+(async () => {
+  // Pull fresh data from cloud first (if configured)
+  if (CLOUD_ENABLED) {
+    await cloudPull(true);
+  }
+
+  // Seed demo data only if nothing exists anywhere
+  if (!employees.length) {
+    employees = [
+      { id:'EMP-001', name:'Maria Santos',  dept:'Human Resources',       position:'HR Manager',       accrualRate:1.25, balVL:15.000, balSL:10.000, absVL:0, absUT_VL:0, balance:{PL:5,ML:60,SEL:3,SPL:3,MFL:5,STL:6,VAW:10,RP:0,SLV:60} },
+      { id:'EMP-002', name:'Jose Reyes',    dept:'Information Technology', position:'Senior Developer', accrualRate:1.25, balVL:12.500, balSL:8.000,  absVL:0, absUT_VL:0, balance:{PL:5,ML:60,SEL:3,SPL:3,MFL:5,STL:6,VAW:10,RP:0,SLV:0}  },
+      { id:'EMP-003', name:'Ana Garcia',    dept:'Finance',                position:'Accountant',       accrualRate:1.5,  balVL:20.000, balSL:15.000, absVL:0, absUT_VL:0, balance:{PL:4,ML:60,SEL:3,SPL:3,MFL:5,STL:6,VAW:10,RP:0,SLV:60} },
+      { id:'EMP-004', name:'Pedro Cruz',    dept:'Operations',             position:'Team Leader',      accrualRate:1.25, balVL:18.750, balSL:12.500, absVL:0, absUT_VL:0, balance:{PL:5,ML:60,SEL:3,SPL:3,MFL:5,STL:6,VAW:10,RP:0,SLV:0}  },
+    ];
+    save(SK.EMP, employees);
+  }
+  if (!leaves.length) {
+    leaves = [
+      { id:1, empId:'EMP-002', type:'VL', from:'2025-02-10', to:'2025-02-12', days:3, reason:'Family vacation',   status:'Approved', created:'2025-02-05' },
+      { id:2, empId:'EMP-003', type:'SL', from:'2025-02-14', to:'2025-02-14', days:1, reason:'Not feeling well',  status:'Approved', created:'2025-02-14' },
+      { id:3, empId:'EMP-001', type:'VL', from:'2025-03-03', to:'2025-03-05', days:3, reason:'Personal matters',  status:'Pending',  created:'2025-02-20' },
+      { id:4, empId:'EMP-004', type:'ML', from:'2025-02-18', to:'2025-02-18', days:1, reason:'Emergency at home', status:'Approved', created:'2025-02-18' },
+    ];
+    save(SK.LEAVES, leaves);
+  }
+  if (!Object.keys(users).length) {
+    employees.forEach(e => { users[e.id] = 'pass123'; });
+    save(SK.USERS, users);
+  }
+
+  populateEmpLoginSelect();
+
+  // Show setup banner if cloud not configured
+  if (!CLOUD_ENABLED) {
+    const hint = document.querySelector('.login-hint');
+    if (hint) hint.insertAdjacentHTML('beforebegin', `
+      <div style="background:rgba(232,201,126,.09);border:1px solid rgba(232,201,126,.25);border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;font-size:.76rem;color:var(--accent);line-height:1.7">
+        <strong>⚠ Cloud sync not configured.</strong><br>
+        Data is <em>device-local only</em> right now.<br>
+        Open this file in a text editor, find<br>
+        <code style="font-size:.72rem;opacity:.8">CLOUD_BIN_ID</code> and <code style="font-size:.72rem;opacity:.8">CLOUD_API_KEY</code>,<br>
+        then follow the 2-minute setup instructions inside.
+      </div>`);
+  }
+})();
+</script>
+</body>
+</html>
